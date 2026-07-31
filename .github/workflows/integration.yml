@@ -1,9 +1,21 @@
+# Integration — the slow, real-world check.
+#
+# Purpose: run the tests marked `@pytest.mark.integration`, which call the live
+# NS API. These are kept out of CI on purpose: they need a secret, they cost API
+# quota, and they fail whenever the NS API is down — none of which should block
+# a pull request.
+#
+# Triggers:
+#   workflow_dispatch -> run by hand from the Actions tab when you want it
+#   schedule          -> weekly canary that tells you the API contract still holds
+#
+# Requires the repository secret NS_API_KEY (see README, "GitHub settings").
 name: Integration
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 6 * * 1"   # maandagochtend 06:00 UTC
+    - cron: "0 6 * * 1"   # Monday 06:00 UTC. Actions cron is always UTC.
 
 jobs:
   integration:
@@ -22,6 +34,10 @@ jobs:
           UV_PYTHON: "3.12"
 
       - name: Run integration tests
+        # This `-m integration` overrides the `-m 'not integration'` from
+        # addopts, because the last -m on the command line wins.
         run: uv run pytest -m integration
         env:
+          # Read by the CLI's --api-key option via its envvar, and by the tests.
+          # An unset secret arrives as an empty string, not as an error.
           NS_API_KEY: ${{ secrets.NS_API_KEY }}

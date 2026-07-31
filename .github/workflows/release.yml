@@ -1,3 +1,15 @@
+# Release — build and publish the package to TestPyPI.
+#
+# Purpose: turn a version tag into a published artifact, without storing any
+# long-lived API token in the repository.
+#
+# Trigger: pushing a tag matching v* (e.g. `git tag v0.1.0 && git push --tags`).
+# Bump `version` in pyproject.toml to match the tag before tagging; nothing here
+# verifies that the two agree.
+#
+# Publishing uses PyPI "trusted publishing" (OIDC): GitHub mints a short-lived
+# identity token for this repo + workflow, and TestPyPI exchanges it for an
+# upload token. Setup is needed on both sides — see README, "GitHub settings".
 name: Release
 
 on:
@@ -7,9 +19,13 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Must match the environment name configured in the TestPyPI trusted
+    # publisher, and lets you require approval before a release goes out.
     environment: testpypi
     permissions:
-      id-token: write     # nodig voor trusted publishing
+      # Required for trusted publishing: allows the job to request an OIDC token.
+      # Without it the job has no credentials at all and the upload fails.
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -18,7 +34,10 @@ jobs:
           enable-cache: true
 
       - name: Build
+        # Produces the sdist and wheel in dist/.
         run: uv build
 
       - name: Publish
+        # TestPyPI, not PyPI — this is a practice project. Point at
+        # https://upload.pypi.org/legacy/ for the real index.
         run: uv publish --publish-url https://test.pypi.org/legacy/

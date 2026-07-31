@@ -1,3 +1,12 @@
+# CI — the fast feedback loop.
+#
+# Purpose: prove that every push to main and every pull request lints cleanly
+# and passes the offline unit tests, on every supported Python version.
+#
+# Deliberately requires no secrets: the pytest `addopts` in pyproject.toml
+# deselect the `integration` marker, so nothing here touches the live NS API.
+# That makes this workflow safe to run on pull requests from forks, and immune
+# to NS API downtime or rate limits.
 name: CI
 
 on:
@@ -10,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        # Both versions allowed by `requires-python = ">=3.11"`. Each is a
+        # separate job, so a failure on one still reports the other.
         python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
@@ -17,18 +28,22 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v3
         with:
+          # Caches uv itself and the resolved wheels between runs, keyed on uv.lock.
           enable-cache: true
 
       - name: Set up Python
         run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
+        # Installs the locked dependency set plus the `dev` group (pytest, ruff).
         run: uv sync --all-extras --dev
         env:
+          # Tells uv which interpreter to build the environment against.
           UV_PYTHON: ${{ matrix.python-version }}
 
       - name: Lint
         run: uv run ruff check .
 
       - name: Test
+        # --cov is already in addopts; repeating it keeps the intent visible here.
         run: uv run pytest --cov
