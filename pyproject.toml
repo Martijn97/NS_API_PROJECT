@@ -1,7 +1,7 @@
 [project]
 name = "ns-api-project"
 version = "0.1.0"
-description = "Add your description here"
+description = "CLI that reports NS departure delay statistics per train category"
 readme = "README.md"
 authors = [
     { name = "Martijn Noordhof", email = "martijn.noordhof@gmail.com" }
@@ -13,6 +13,8 @@ dependencies = [
 ]
 
 [project.scripts]
+# Console script name uses hyphens; the importable package uses underscores.
+# Run it as `uv run ns-api-project`, not `ns_api_project`.
 ns-api-project = "ns_api_project.cli:main"
 
 [build-system]
@@ -20,6 +22,7 @@ requires = ["uv_build>=0.12.0,<0.13.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
+# Installed by `uv sync --dev`; not shipped to users of the package.
 dev = [
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
@@ -29,7 +32,12 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
+# Registering the marker keeps pytest from warning about an unknown mark and
+# documents it in `pytest --markers`.
 markers = [
     "integration: hits the live NS API, requires NS_API_KEY",
 ]
+# Applied to every pytest run: coverage of the package with uncovered line
+# numbers, and integration tests deselected so the default run stays offline
+# and needs no API key. Override with `-m integration` (the last -m wins).
 addopts = "--cov=src/ns_api_project --cov-report=term-missing -m 'not integration'"
