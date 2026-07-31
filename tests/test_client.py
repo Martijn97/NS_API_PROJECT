@@ -1,7 +1,7 @@
 import httpx
 import respx
 
-from ns_stats.client import get_departures
+from ns_api_project.client import get_departures
 
 
 @respx.mock
