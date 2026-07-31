@@ -1,0 +1,27 @@
+name: Integration
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"   # maandagochtend 06:00 UTC
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+        env:
+          UV_PYTHON: "3.12"
+
+      - name: Run integration tests
+        run: uv run pytest -m integration
+        env:
+          NS_API_KEY: ${{ secrets.NS_API_KEY }}
