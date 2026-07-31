@@ -1,0 +1,26 @@
+# Virtual environment
+.venv/
+
+# Python bytecode/cache
+__pycache__/
+*.pyc
+
+# Distribution/build artifacts
+dist/
+build/
+*.egg-info/
+
+# Testing/coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Ruff cache
+.ruff_cache/
+
+# Environment variables (if you use a .env for local API key)
+.env
+
+# Editor/OS
+.vscode/
+.DS_Store
