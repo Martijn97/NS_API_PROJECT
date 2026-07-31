@@ -1,6 +1,3 @@
-# src/ns_api_project/cli.py
-import os
-
 import click
 
 from ns_api_project.aggregate import stats_by_category
